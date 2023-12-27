@@ -7,17 +7,6 @@ from matrix import *
 from mesh import *
 
 
-# draws a filled triangle on the screen
-def draw_fill(screen, triangle):
-    pygame.draw.polygon(screen, triangle.color, get_xy(triangle))
-
-
-# normalize x and y coordinates of a triangle to the screen size
-def get_xy(triangle):
-    global WIDTH, HEIGHT
-    return [np.round((point[:2]+1)*0.5*[WIDTH, HEIGHT]) for point in triangle.p]
-
-
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -52,7 +41,7 @@ class Scene:
 
         self.meshes = {}
 
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         self.screen.fill((0, 0, 0))
 
     def add_mesh(self, name, mesh):
@@ -99,7 +88,10 @@ class Scene:
 
         # draw triangles in order of distance to camera
         for tri in triangles:
-            draw_fill(self.screen, tri)
+            self.draw_fill(tri)
+
+    def draw_fill(self, triangle):
+        pygame.draw.polygon(self.screen, triangle.color, self.get_xy(triangle))
 
     def get_xy(self, triangle):
         return [np.round((point[:2] + 1) * 0.5 * [self.WIDTH, self.HEIGHT]) for point in triangle.p]
