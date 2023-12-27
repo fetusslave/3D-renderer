@@ -1,6 +1,7 @@
 import numpy as np
 from math import pi, sin, cos, acos
-from matrix import project, translation_matrix, length, dot_product, normalize, vector_add, cross_product
+from matrix import project, translation_matrix, length, dot_product, normalize, vector_add, cross_product, \
+    projection_matrix, x_rotation_matrix, y_rotation_matrix, z_rotation_matrix, point_at, matrix_inverse
 
 
 # vertices are stored in clockwise order
@@ -43,6 +44,13 @@ class Triangle:
         l2 = self.p[2]-self.p[0]
         n = cross_product(l1, l2)
         return n/length(n)
+
+    def center(self):
+        return np.array([
+            (self.p[0][0] + self.p[1][0] + self.p[2][0]) / 3,
+            (self.p[0][1] + self.p[1][1] + self.p[2][1]) / 3,
+            (self.p[0][2] + self.p[1][2] + self.p[2][2]) / 3
+        ])
 
     # reverses the normal
     def flip(self):
@@ -96,12 +104,33 @@ class Mesh:
         return Mesh(triangles)
 
     # initialize mesh with a list of vertices
-    def __init__(self, triangles: list):
+    def __init__(self, triangles: list, center=(0, 0, 0)):
         self.triangles = triangles
+        self.center = center
 
     def translate(self, x, y, z):
         triangles = [tri.multiply_matrix(translation_matrix(x, y, z)) for tri in self.triangles]
-        return Mesh(triangles)
+        return Mesh(triangles, (self.center[0]+x, self.center[1]+y, self.center[2]+z))
+
+    def rotate_x(self, angle):
+        triangles = [tri.multiply_matrix(x_rotation_matrix(angle, self.center)) for tri in self.triangles]
+        return Mesh(triangles, self.center)
+
+
+class Light:
+    def __init__(self, position, direction, brightness):
+        self.position = position
+        self.direction = direction
+        self.brightness = brightness
+
+    def calculate_luminosity(self, triangle):
+        l = self.position-triangle.center()
+        nl = l / length(l)
+        return np.dot(triangle.normal(), nl)*self.brightness
+
+
+
+
 
 
 # equation of plane, returns 0 if p lies on plane
